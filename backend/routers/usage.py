@@ -117,13 +117,26 @@ def usage_trend(
 @router.get("/records")
 def usage_records(
     provider_id: Optional[int] = Query(None),
-    limit: int = Query(20),
+    limit: int = Query(10),
     offset: int = Query(0),
+    range: str = Query("all"),  # today / week / month / all
     session: Session = Depends(get_session),
 ):
+    now = datetime.utcnow()
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_week = start_of_day - timedelta(days=start_of_day.weekday())
+    start_of_month = start_of_day.replace(day=1)
+
     query = select(UsageRecord).order_by(UsageRecord.timestamp.desc())
     if provider_id:
         query = query.where(UsageRecord.provider_id == provider_id)
+    if range == "today":
+        query = query.where(UsageRecord.timestamp >= start_of_day)
+    elif range == "week":
+        query = query.where(UsageRecord.timestamp >= start_of_week)
+    elif range == "month":
+        query = query.where(UsageRecord.timestamp >= start_of_month)
+
     total = len(session.exec(query).all())
     records = session.exec(query.offset(offset).limit(limit)).all()
     return {"total": total, "records": records}

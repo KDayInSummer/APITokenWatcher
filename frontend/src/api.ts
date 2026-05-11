@@ -39,8 +39,8 @@ export const api = {
     summary: (providerId?: number) => get(`/api/usage/summary?${providerId ? `provider_id=${providerId}` : ''}`),
     trend: (providerId?: number, period = 'day', limit = 24) =>
       get(`/api/usage/trend?${providerId ? `provider_id=${providerId}&` : ''}period=${period}&limit=${limit}`),
-    records: (providerId?: number, limit = 20, offset = 0) =>
-      get(`/api/usage/records?${providerId ? `provider_id=${providerId}&` : ''}limit=${limit}&offset=${offset}`),
+    records: (providerId?: number, limit = 10, offset = 0, range = 'all') =>
+      get(`/api/usage/records?${providerId ? `provider_id=${providerId}&` : ''}limit=${limit}&offset=${offset}&range=${range}`),
   },
   alerts: {
     list: () => get('/api/alerts'),
