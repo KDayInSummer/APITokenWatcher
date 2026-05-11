@@ -46,7 +46,7 @@ export default function Dashboard({ providerId }: { providerId?: number }) {
         ))}
       </div>
 
-      <RecentRecords providerId={providerId} />
+      <RecentRecords providerId={providerId} currency={summary.currency} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
