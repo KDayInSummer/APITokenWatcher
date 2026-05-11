@@ -1,0 +1,23 @@
+# 数据库（含 API Key）
+data.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# 前端依赖
+frontend/node_modules/
+
+# 日志
+*.log
+/tmp/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+CLAUDE.md
