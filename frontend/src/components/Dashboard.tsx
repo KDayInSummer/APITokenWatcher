@@ -12,6 +12,8 @@ interface Summary {
   today_calls: number;
   remaining_balance: number;
   currency: string;
+  today_cache_hit_tokens: number;
+  today_cache_miss_tokens: number;
 }
 
 export default function Dashboard({ providerId }: { providerId?: number }) {
@@ -32,8 +34,34 @@ export default function Dashboard({ providerId }: { providerId?: number }) {
     { label: '剩余额度', value: `${sym}${summary.remaining_balance.toFixed(2)}`, color: 'bg-cyan-500' },
   ];
 
+  const hitRate = summary.today_cache_hit_tokens + summary.today_cache_miss_tokens > 0
+    ? (summary.today_cache_hit_tokens / (summary.today_cache_hit_tokens + summary.today_cache_miss_tokens) * 100).toFixed(1)
+    : '-';
+
   return (
     <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-violet-500" />
+            <div className="text-xs text-gray-400">今日缓存命中</div>
+          </div>
+          <div className="text-xl font-bold text-emerald-400">{summary.today_cache_hit_tokens.toLocaleString()}</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">命中率 {hitRate}%</div>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-amber-500" />
+            <div className="text-xs text-gray-400">今日缓存未命中</div>
+          </div>
+          <div className="text-xl font-bold text-orange-400">{summary.today_cache_miss_tokens.toLocaleString()}</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">
+            省 {sym}{(summary.today_cache_miss_tokens * 0.9 / 1_000_000).toFixed(4)}
+            <span className="text-gray-600"> (按 0.9/百万差价计)</span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-2">
         {cards.map((c) => (
           <div key={c.label} className="bg-gray-800 rounded-lg p-3 border border-gray-700">

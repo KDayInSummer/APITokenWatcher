@@ -37,6 +37,8 @@ cd ..
 python run.py
 ```
 
+Windows 下也可直接双击 `启动.bat` 以无窗口模式运行。
+
 启动后会打开桌面窗口，首次使用需要在「配置」页面添加平台配置。
 
 ## 配置说明
@@ -78,26 +80,37 @@ APITokenWatcher/
 │   │   ├── config.py       # 平台配置
 │   │   ├── usage.py        # 用量统计
 │   │   └── alerts.py       # 告警管理
-│   └── services/           # 业务逻辑
-│       ├── cost.py         # 费用计算
-│       ├── monitor.py      # 定时任务
-│       ├── balance.py      # 余额同步
-│       └── notifier.py     # 通知服务
-├── frontend/               # React 前端
+│   ├── services/           # 业务逻辑
+│   │   ├── cost.py         # 费用计算
+│   │   ├── monitor.py      # 定时任务
+│   │   ├── balance.py      # 余额同步
+│   │   └── notifier.py     # 通知服务
+│   └── static/             # 构建后的前端静态文件
+├── frontend/               # React 前端 (Vite + TypeScript)
 │   ├── src/
+│   │   ├── main.tsx        # 入口
 │   │   ├── App.tsx         # 主界面
 │   │   ├── api.ts          # API 封装
-│   │   └── components/     # UI 组件
+│   │   ├── index.css       # Tailwind 样式
+│   │   ├── components/     # UI 组件
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── ConfigPanel.tsx
+│   │   │   ├── UsageChart.tsx
+│   │   │   ├── RecentRecords.tsx
+│   │   │   └── AlertBanner.tsx
+│   │   └── hooks/
+│   │       └── usePolling.ts  # 轮询 hook
 │   └── package.json
 ├── run.py                  # 启动脚本
 ├── requirements.txt        # Python 依赖
+├── 启动.bat                # Windows 无窗口启动
 └── .gitignore
 ```
 
 ## 技术栈
 
 - **后端**：FastAPI、SQLModel、SQLite、APScheduler
-- **前端**：React、TypeScript、Tailwind CSS、Recharts
+- **前端**：React、TypeScript、Vite、Tailwind CSS、Recharts
 - **桌面**：pywebview
 
 ## 数据存储
@@ -108,14 +121,16 @@ APITokenWatcher/
 ## 开发模式
 
 ```bash
-# 后端
+# 后端（热重载）
 cd backend
 uvicorn main:app --reload --host 127.0.0.1 --port 8765
 
-# 前端
+# 前端（Vite 开发服务器）
 cd frontend
 npm run dev
 ```
+
+开发时后端代理层默认监听 `8765` 端口，前端 Vite 开发服务器默认 `5173` 端口。生产构建前端文件输出到 `backend/static/`，由 FastAPI 直接托管。
 
 ## 许可证
 

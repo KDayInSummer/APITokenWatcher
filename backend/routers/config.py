@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from typing import List
@@ -39,9 +40,10 @@ def update_provider(provider_id: int, updated: ProviderConfig, session: Session 
         raise HTTPException(status_code=404, detail="Not found")
     data = updated.model_dump(exclude_unset=True)
     for key, value in data.items():
-        if key == "id":
+        if key in ("id", "created_at", "updated_at"):
             continue
         setattr(provider, key, value)
+    provider.updated_at = datetime.utcnow()
     session.add(provider)
     session.commit()
     session.refresh(provider)

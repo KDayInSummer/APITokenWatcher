@@ -20,6 +20,7 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [editing, setEditing] = useState<Provider | null>(null);
   const [syncing, setSyncing] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     const list = await api.providers.list();
@@ -30,16 +31,30 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
     load();
   }, []);
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const save = async () => {
     if (!editing) return;
-    if (editing.id) {
-      await api.providers.update(editing.id, editing);
-    } else {
-      await api.providers.create(editing);
+    setSaving(true);
+    setSaveError(null);
+    const payload = { ...editing };
+    delete (payload as any).created_at;
+    delete (payload as any).updated_at;
+    try {
+      if (editing.id) {
+        await api.providers.update(editing.id, payload);
+      } else {
+        await api.providers.create(payload);
+      }
+      setEditing(null);
+      await load();
+      onChange?.();
+    } catch (e: any) {
+      const msg = e?.message || '保存失败，请检查网络或稍后重试';
+      setSaveError(msg);
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
-    await load();
-    onChange?.();
   };
 
   const remove = async (id: number) => {
@@ -224,9 +239,16 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
               </div>
             </div>
 
+            {saveError && (
+              <div className="text-[10px] text-red-400 bg-red-900/20 border border-red-800 rounded px-2 py-1">
+                {saveError}
+              </div>
+            )}
             <div className="flex justify-end gap-2 pt-1">
-              <button onClick={() => setEditing(null)} className="px-3 py-1 text-[10px] border border-gray-600 text-gray-300 rounded hover:bg-gray-700">取消</button>
-              <button onClick={save} className="px-3 py-1 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-500">保存</button>
+              <button onClick={() => { setEditing(null); setSaveError(null); }} className="px-3 py-1 text-[10px] border border-gray-600 text-gray-300 rounded hover:bg-gray-700">取消</button>
+              <button onClick={save} disabled={saving} className="px-3 py-1 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50">
+                {saving ? '保存中...' : '保存'}
+              </button>
             </div>
           </div>
         </div>

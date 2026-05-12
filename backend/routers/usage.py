@@ -39,6 +39,16 @@ def usage_summary(
         result = session.exec(query).first()
         return result or 0
 
+    def get_cache_sum(start: datetime) -> tuple:
+        query = select(
+            func.sum(UsageRecord.prompt_cache_hit_tokens),
+            func.sum(UsageRecord.prompt_cache_miss_tokens),
+        ).where(UsageRecord.timestamp >= start)
+        if provider_id:
+            query = query.where(UsageRecord.provider_id == provider_id)
+        result = session.exec(query).first()
+        return (result[0] or 0, result[1] or 0) if result else (0, 0)
+
     provider = None
     if provider_id:
         provider = session.get(ProviderConfig, provider_id)
@@ -47,6 +57,8 @@ def usage_summary(
     total_cost = total_cost_result or 0.0
 
     remaining = (provider.initial_balance - total_cost) if provider else 0.0
+
+    today_cache_hit, today_cache_miss = get_cache_sum(start_of_day)
 
     return {
         "today_tokens": get_tokens(start_of_day),
@@ -57,6 +69,8 @@ def usage_summary(
         "today_calls": get_calls(start_of_day),
         "remaining_balance": round(remaining, 4),
         "currency": provider.balance_currency if provider else "USD",
+        "today_cache_hit_tokens": int(today_cache_hit),
+        "today_cache_miss_tokens": int(today_cache_miss),
     }
 
 
