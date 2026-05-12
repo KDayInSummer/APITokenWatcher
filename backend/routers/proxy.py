@@ -27,8 +27,7 @@ def _is_anthropic_format(headers: dict, body: bytes) -> bool:
     return False
 
 
-def _record_usage(session: Session, provider_id: int, provider_name: str, usage: dict, model: str = "", currency: str = "USD",
-                   pricing_hit: float = 0.02, pricing_miss: float = 1.0, pricing_out: float = 2.0):
+def _record_usage(session: Session, provider: ProviderConfig, usage: dict, model: str = ""):
     if not usage:
         return
 
@@ -53,26 +52,33 @@ def _record_usage(session: Session, provider_id: int, provider_name: str, usage:
     if total_tokens == 0:
         return
 
+    cost = calculate_cost(
+        prompt_cache_hit_tokens,
+        prompt_cache_miss_tokens,
+        completion_tokens,
+        provider.pricing_cache_hit_input,
+        provider.pricing_cache_miss_input,
+        provider.pricing_output,
+    )
+
     record = UsageRecord(
-        provider_id=provider_id,
+        provider_id=provider.id,
         model=model,
         prompt_tokens=prompt_tokens,
         completion_tokens=completion_tokens,
         prompt_cache_hit_tokens=prompt_cache_hit_tokens,
         prompt_cache_miss_tokens=prompt_cache_miss_tokens,
         total_tokens=total_tokens,
-        cost_usd=calculate_cost(
-            prompt_cache_hit_tokens,
-            prompt_cache_miss_tokens,
-            completion_tokens,
-            pricing_hit,
-            pricing_miss,
-            pricing_out,
-        ),
+        cost_usd=cost,
     )
     session.add(record)
+
+    # 实时扣减余额
+    provider.initial_balance = round(provider.initial_balance - cost, 4)
+    session.add(provider)
+
     session.commit()
-    print(f"[Proxy] Usage recorded: {model} | {total_tokens} tokens | cost={record.cost_usd:.6f} {currency}")
+    print(f"[Proxy] Usage recorded: {model} | {total_tokens} tokens | cost={cost:.6f} {provider.balance_currency} | balance={provider.initial_balance:.4f}")
 
 
 @router.api_route("/{provider_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
@@ -184,9 +190,7 @@ async def proxy_request(
                 finally:
                     await proxy_response.aclose()
                 if last_usage:
-                    _record_usage(session, provider.id, provider.name, last_usage, model_name,
-                                 provider.balance_currency, provider.pricing_cache_hit_input,
-                                 provider.pricing_cache_miss_input, provider.pricing_output)
+                    _record_usage(session, provider, last_usage, model_name)
 
             return StreamingResponse(
                 stream_with_usage(),
@@ -219,9 +223,7 @@ async def proxy_request(
     if "application/json" in content_type:
         try:
             data = proxy_response.json()
-            _record_usage(session, provider.id, provider.name, data.get("usage"), data.get("model", ""),
-                         provider.balance_currency, provider.pricing_cache_hit_input,
-                         provider.pricing_cache_miss_input, provider.pricing_output)
+            _record_usage(session, provider, data.get("usage"), data.get("model", ""))
         except Exception:
             pass
 
