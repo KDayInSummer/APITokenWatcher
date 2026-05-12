@@ -20,6 +20,7 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
   const [editing, setEditing] = useState<Provider | null>(null);
   const [syncing, setSyncing] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   const load = async () => {
     const list = await api.providers.list();
@@ -76,6 +77,7 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
   };
 
   const startEdit = (p?: Provider) => {
+    setShowApiKey(false);
     setEditing(
       p || {
         name: 'deepseek',
@@ -93,6 +95,11 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
   };
 
   const sym = (c: string) => c === 'CNY' ? '¥' : '$';
+
+  const maskApiKey = (key: string) => {
+    if (!key || key.length <= 8) return key;
+    return key.slice(0, 5) + '*'.repeat(Math.min(20, key.length - 8)) + key.slice(-3);
+  };
 
   return (
     <div className="space-y-3">
@@ -143,11 +150,26 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">API Key</label>
-                <input
-                  className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
-                  value={editing.api_key}
-                  onChange={(e) => setEditing({ ...editing, api_key: e.target.value })}
-                />
+                <div className="flex gap-1">
+                  <input
+                    className="flex-1 border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    type={showApiKey ? 'text' : 'password'}
+                    value={editing.api_key}
+                    onChange={(e) => setEditing({ ...editing, api_key: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="px-2 py-1 text-[10px] border border-gray-600 text-gray-400 rounded hover:bg-gray-600"
+                  >
+                    {showApiKey ? '隐藏' : '显示'}
+                  </button>
+                </div>
+                {!showApiKey && editing.api_key && (
+                  <div className="text-[10px] text-gray-500 mt-0.5 font-mono">
+                    {maskApiKey(editing.api_key)}
+                  </div>
+                )}
               </div>
               <div className="col-span-2">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Base URL</label>
