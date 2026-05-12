@@ -6,7 +6,6 @@ interface Provider {
   name: string;
   api_key: string;
   base_url: string;
-  initial_balance: number;
   balance_currency: string;
   alert_threshold_cost: number;
   alert_threshold_balance: number;
@@ -82,7 +81,6 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
         name: 'deepseek',
         api_key: '',
         base_url: 'https://api.deepseek.com',
-        initial_balance: 0,
         balance_currency: 'CNY',
         alert_threshold_cost: 0,
         alert_threshold_balance: 0,
@@ -112,9 +110,6 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
         <div key={p.id} className="bg-gray-800 rounded-lg p-2 border border-gray-700 flex justify-between items-center">
           <div>
             <div className="font-medium text-gray-100 text-xs">{p.name}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">
-              余额: {sym(p.balance_currency)}{p.initial_balance} {p.balance_currency}
-            </div>
             <div className="text-[10px] text-gray-500">
               定价: 缓存命中 {p.pricing_cache_hit_input} | 未命中 {p.pricing_cache_miss_input} | 输出 {p.pricing_output}
             </div>
@@ -164,11 +159,13 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">币种</label>
-                <input
+                <select
                   className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
                   value={editing.balance_currency}
                   onChange={(e) => setEditing({ ...editing, balance_currency: e.target.value })}
-                />
+                >
+                  <option value="CNY">CNY</option>
+                </select>
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">费用阈值</label>
