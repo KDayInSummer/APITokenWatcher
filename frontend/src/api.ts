@@ -36,9 +36,10 @@ export const api = {
     syncBalance: (id: number) => post(`/api/providers/${id}/sync-balance`),
   },
   usage: {
-    summary: (providerId?: number) => get(`/api/usage/summary?${providerId ? `provider_id=${providerId}` : ''}`),
-    trend: (providerId?: number, period = 'day', limit = 24) =>
-      get(`/api/usage/trend?${providerId ? `provider_id=${providerId}&` : ''}period=${period}&limit=${limit}`),
+    summary: (providerId?: number, startTime?: number) =>
+      get(`/api/usage/summary?${providerId ? `provider_id=${providerId}&` : ''}${startTime ? `start_time=${startTime}` : ''}`),
+    trend: (providerId?: number, period = 'day', limit = 24, year?: number, month?: number) =>
+      get(`/api/usage/trend?${providerId ? `provider_id=${providerId}&` : ''}period=${period}&limit=${limit}${year ? `&year=${year}` : ''}${month ? `&month=${month}` : ''}`),
     records: (providerId?: number, limit = 10, offset = 0, range = 'all') =>
       get(`/api/usage/records?${providerId ? `provider_id=${providerId}&` : ''}limit=${limit}&offset=${offset}&range=${range}`),
   },

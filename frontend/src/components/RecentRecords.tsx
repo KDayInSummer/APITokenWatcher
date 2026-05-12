@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { usePolling } from '../hooks/usePolling';
+import type { TimeRange } from '../App';
 
 interface Record {
   id: number;
@@ -24,17 +25,18 @@ function toChinaTime(utcStr: string): string {
   return `${y}/${m}/${day} ${h}:${min}:${s}`;
 }
 
-type Range = 'today' | 'week' | 'month' | 'all';
-
-export default function RecentRecords({ providerId, currency = 'CNY' }: { providerId?: number; currency?: string }) {
-  const [range, setRange] = useState<Range>('all');
+export default function RecentRecords({ providerId, currency = 'CNY', timeRange }: { providerId?: number; currency?: string; timeRange: TimeRange }) {
   const [page, setPage] = useState(0);
   const limit = 10;
 
+  useEffect(() => {
+    setPage(0);
+  }, [timeRange, providerId]);
+
   const { data } = usePolling<{ total: number; records: Record[] }>(
-    () => api.usage.records(providerId, limit, page * limit, range),
+    () => api.usage.records(providerId, limit, page * limit, timeRange),
     10000,
-    [providerId, range, page]
+    [providerId, timeRange, page]
   );
 
   const records = data?.records || [];
@@ -42,28 +44,10 @@ export default function RecentRecords({ providerId, currency = 'CNY' }: { provid
   const totalPages = Math.ceil(total / limit);
   const sym = currency === 'CNY' ? '¥' : '$';
 
-  const ranges: { key: Range; label: string }[] = [
-    { key: 'today', label: '今日' },
-    { key: 'week', label: '本周' },
-    { key: 'month', label: '本月' },
-    { key: 'all', label: '全部' },
-  ];
-
   return (
     <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-xs font-semibold text-gray-100">最近用量记录</h3>
-        <div className="flex gap-1">
-          {ranges.map((r) => (
-            <button
-              key={r.key}
-              onClick={() => { setRange(r.key); setPage(0); }}
-              className={`px-2 py-0.5 text-[10px] rounded ${range === r.key ? 'bg-blue-600/30 text-blue-400' : 'text-gray-400 hover:bg-gray-700'}`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-[11px]">

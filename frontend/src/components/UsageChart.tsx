@@ -32,6 +32,7 @@ export default function UsageChart({ data, type }: { data: DataPoint[]; type: 't
         <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={{ stroke: '#4b5563' }} tickLine={{ stroke: '#4b5563' }} width={35} />
         <Tooltip
           contentStyle={{ borderRadius: 6, border: '1px solid #374151', backgroundColor: '#1f2937', color: '#e5e7eb', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', fontSize: 11 }}
+          formatter={(value: number, name: string) => [value.toLocaleString(), name === 'cost' ? '金额' : name === 'tokens' ? 'Token' : name]}
         />
         <Area
           type="monotone"

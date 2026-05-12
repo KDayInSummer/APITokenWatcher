@@ -10,11 +10,13 @@ interface Provider {
 }
 
 type Tab = 'dashboard' | 'config';
+export type TimeRange = 'today' | 'week' | 'month' | 'all';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [providers, setProviders] = useState<Provider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<number | undefined>(undefined);
+  const [timeRange, setTimeRange] = useState<TimeRange>('today');
 
   const loadProviders = async () => {
     const list = await api.providers.list();
@@ -75,7 +77,7 @@ export default function App() {
         {tab === 'dashboard' && (
           <>
             <AlertBanner />
-            <Dashboard providerId={selectedProvider} />
+            <Dashboard providerId={selectedProvider} timeRange={timeRange} onTimeRangeChange={setTimeRange} />
           </>
         )}
         {tab === 'config' && (
