@@ -4,7 +4,10 @@ import threading
 from pathlib import Path
 
 # 确保项目根目录在导入路径中
-ROOT = Path(__file__).parent.resolve()
+if getattr(sys, "frozen", False):
+    ROOT = Path(sys.executable).parent
+else:
+    ROOT = Path(__file__).parent.resolve()
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 

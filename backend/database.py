@@ -1,8 +1,7 @@
 from sqlmodel import SQLModel, create_engine, Session
-from pathlib import Path
+from backend.config import settings
 
-DB_PATH = Path(__file__).parent.parent / "data.db"
-engine = create_engine(f"sqlite:///{DB_PATH}", echo=False, connect_args={"check_same_thread": False})
+engine = create_engine(f"sqlite:///{settings.db_path}", echo=False, connect_args={"check_same_thread": False})
 
 
 def init_db():

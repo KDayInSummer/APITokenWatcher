@@ -13,12 +13,18 @@
 
 ## 快速开始
 
-### 环境要求
+### 方式一：直接使用（推荐）
+
+从 `dist/` 目录下载 `APITokenWatcher.rar`，解压后双击 `APITokenWatcher.exe` 即可运行。无需安装 Python 或 Node.js。
+
+### 方式二：从源码运行
+
+#### 环境要求
 
 - Python 3.10+
 - Node.js 16+
 
-### 安装依赖
+#### 安装依赖
 
 ```bash
 # 安装 Python 依赖
@@ -31,7 +37,7 @@ npm run build
 cd ..
 ```
 
-### 启动应用
+#### 启动应用
 
 ```bash
 python run.py
@@ -40,6 +46,15 @@ python run.py
 Windows 下也可直接双击 `启动.bat` 以无窗口模式运行。
 
 启动后会打开桌面窗口，首次使用需要在「配置」页面添加平台配置。
+
+### 构建 exe
+
+```bash
+# 一键构建（自动构建前端 + 打包 exe）
+build.bat
+```
+
+构建产物在 `dist/APITokenWatcher/` 目录，整个文件夹可直接分享给他人使用。
 
 ## 配置说明
 
@@ -101,7 +116,12 @@ APITokenWatcher/
 │   │   └── hooks/
 │   │       └── usePolling.ts  # 轮询 hook
 │   └── package.json
+├── dist/                   # 构建产物
+│   ├── APITokenWatcher/    # exe 及依赖
+│   └── APITokenWatcher.rar # 可分发的压缩包
 ├── run.py                  # 启动脚本
+├── build.bat               # 一键构建脚本
+├── APITokenWatcher.spec    # PyInstaller 配置
 ├── requirements.txt        # Python 依赖
 ├── 启动.bat                # Windows 无窗口启动
 └── .gitignore
@@ -131,7 +151,7 @@ APITokenWatcher/
 | name | VARCHAR | 平台标识（如 `deepseek`） |
 | api_key | VARCHAR | **API 密钥（敏感信息）** |
 | base_url | VARCHAR | API 地址 |
-| initial_balance | FLOAT | 真实余额（由 API 同步接口自动更新，无需手动设置） |
+| initial_balance | FLOAT | 真实余额（每次调用实时扣减，每 5 分钟从 API 同步校准） |
 | balance_currency | VARCHAR | 余额币种（如 `CNY`、`USD`） |
 | alert_threshold_cost | FLOAT | 费用告警阈值 |
 | alert_threshold_balance | FLOAT | 余额告警阈值 |

@@ -11,6 +11,11 @@ venv/
 # 前端依赖
 frontend/node_modules/
 
+# PyInstaller 构建产物
+build/
+dist/
+*.spec.bak
+
 # 日志
 *.log
 /tmp/
