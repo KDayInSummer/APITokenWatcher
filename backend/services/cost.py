@@ -1,22 +1,14 @@
-from backend.config import settings
-
-
 def calculate_cost(
     prompt_cache_hit_tokens: int,
     prompt_cache_miss_tokens: int,
     completion_tokens: int,
-    provider: str = "deepseek",
-    currency: str = "USD",
+    pricing_cache_hit: float = 0.02,
+    pricing_cache_miss: float = 1.0,
+    pricing_output: float = 2.0,
 ) -> float:
-    if provider == "deepseek":
-        if currency == "CNY":
-            pricing = settings.default_deepseek_pricing_cny
-        else:
-            pricing = settings.default_deepseek_pricing
-        cost = (
-            prompt_cache_hit_tokens * pricing["cache_hit_input"]
-            + prompt_cache_miss_tokens * pricing["cache_miss_input"]
-            + completion_tokens * pricing["output"]
-        ) / 1_000_000
-        return round(cost, 8)
-    return 0.0
+    cost = (
+        prompt_cache_hit_tokens * pricing_cache_hit
+        + prompt_cache_miss_tokens * pricing_cache_miss
+        + completion_tokens * pricing_output
+    ) / 1_000_000
+    return round(cost, 8)

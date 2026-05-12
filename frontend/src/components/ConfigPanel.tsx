@@ -11,6 +11,9 @@ interface Provider {
   alert_threshold_cost: number;
   alert_threshold_balance: number;
   is_enabled: boolean;
+  pricing_cache_hit_input: number;
+  pricing_cache_miss_input: number;
+  pricing_output: number;
 }
 
 export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
@@ -69,6 +72,9 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
         alert_threshold_cost: 0,
         alert_threshold_balance: 0,
         is_enabled: true,
+        pricing_cache_hit_input: 0.02,
+        pricing_cache_miss_input: 1.0,
+        pricing_output: 2.0,
       }
     );
   };
@@ -94,7 +100,9 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
             <div className="text-[10px] text-gray-400 mt-0.5">
               余额: {sym(p.balance_currency)}{p.initial_balance} {p.balance_currency}
             </div>
-            <div className="text-[10px] text-gray-500">{p.base_url}</div>
+            <div className="text-[10px] text-gray-500">
+              定价: 缓存命中 {p.pricing_cache_hit_input} | 未命中 {p.pricing_cache_miss_input} | 输出 {p.pricing_output}
+            </div>
           </div>
           <div className="flex gap-1">
             <button
@@ -112,7 +120,7 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
 
       {editing && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-4 space-y-3 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-4 space-y-3 border border-gray-700 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xs font-semibold text-gray-100">{editing.id ? '编辑平台' : '新增平台'}</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -178,6 +186,44 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
                 />
               </div>
             </div>
+
+            {/* 模型定价配置 */}
+            <div className="pt-2 border-t border-gray-700">
+              <div className="text-[10px] text-gray-400 mb-2">模型定价（每百万 token，单位：{editing.balance_currency}）</div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] text-gray-400 mb-0.5">输入（缓存命中）</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={editing.pricing_cache_hit_input}
+                    onChange={(e) => setEditing({ ...editing, pricing_cache_hit_input: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-400 mb-0.5">输入（缓存未命中）</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={editing.pricing_cache_miss_input}
+                    onChange={(e) => setEditing({ ...editing, pricing_cache_miss_input: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-400 mb-0.5">输出</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={editing.pricing_output}
+                    onChange={(e) => setEditing({ ...editing, pricing_output: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-1">
               <button onClick={() => setEditing(null)} className="px-3 py-1 text-[10px] border border-gray-600 text-gray-300 rounded hover:bg-gray-700">取消</button>
               <button onClick={save} className="px-3 py-1 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-500">保存</button>

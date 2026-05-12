@@ -15,6 +15,10 @@ class ProviderConfig(SQLModel, table=True):
     alert_threshold_cost: float = 0.0
     alert_threshold_balance: float = 0.0
     is_enabled: bool = True
+    # 模型定价（每百万token，单位：当前币种）
+    pricing_cache_hit_input: float = 0.05
+    pricing_cache_miss_input: float = 0.05
+    pricing_output: float = 0.1
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
