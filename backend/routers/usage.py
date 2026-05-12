@@ -53,10 +53,13 @@ def usage_summary(
     if provider_id:
         provider = session.get(ProviderConfig, provider_id)
 
-    total_cost_result = session.exec(select(func.sum(UsageRecord.cost_usd))).first()
+    total_cost_query = select(func.sum(UsageRecord.cost_usd))
+    if provider_id:
+        total_cost_query = total_cost_query.where(UsageRecord.provider_id == provider_id)
+    total_cost_result = session.exec(total_cost_query).first()
     total_cost = total_cost_result or 0.0
 
-    remaining = (provider.initial_balance - total_cost) if provider else 0.0
+    remaining = provider.initial_balance if provider else 0.0
 
     today_cache_hit, today_cache_miss = get_cache_sum(start_of_day)
 

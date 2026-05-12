@@ -115,8 +115,89 @@ APITokenWatcher/
 
 ## 数据存储
 
-- 数据库文件：`data.db`（SQLite，含 API Key，请勿提交到 Git）
-- 已在 `.gitignore` 中排除
+### 数据库文件
+
+- **位置**：项目根目录下的 `data.db`
+- **类型**：SQLite
+- **安全**：已在 `.gitignore` 中排除，**请勿提交到 Git**
+
+### 数据库结构
+
+#### provider_config（平台配置表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键，自增 |
+| name | VARCHAR | 平台标识（如 `deepseek`） |
+| api_key | VARCHAR | **API 密钥（敏感信息）** |
+| base_url | VARCHAR | API 地址 |
+| initial_balance | FLOAT | 真实余额（由 API 同步接口自动更新，无需手动设置） |
+| balance_currency | VARCHAR | 余额币种（如 `CNY`、`USD`） |
+| alert_threshold_cost | FLOAT | 费用告警阈值 |
+| alert_threshold_balance | FLOAT | 余额告警阈值 |
+| is_enabled | BOOLEAN | 是否启用 |
+| pricing_cache_hit_input | FLOAT | 缓存命中输入价格（每百万 token） |
+| pricing_cache_miss_input | FLOAT | 缓存未命中输入价格（每百万 token） |
+| pricing_output | FLOAT | 输出价格（每百万 token） |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
+#### usage_record（用量记录表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键，自增 |
+| provider_id | INTEGER | 关联的平台 ID |
+| timestamp | DATETIME | 请求时间 |
+| model | VARCHAR | 模型名称 |
+| prompt_tokens | INTEGER | 输入 token 数 |
+| completion_tokens | INTEGER | 输出 token 数 |
+| prompt_cache_hit_tokens | INTEGER | 缓存命中 token 数 |
+| prompt_cache_miss_tokens | INTEGER | 缓存未命中 token 数 |
+| total_tokens | INTEGER | 总 token 数 |
+| cost_usd | FLOAT | 费用（USD） |
+
+#### alert_log（告警日志表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键，自增 |
+| provider_id | INTEGER | 关联的平台 ID |
+| alert_type | VARCHAR | 告警类型（`balance_low` / `cost_threshold`） |
+| message | VARCHAR | 告警内容 |
+| triggered_at | DATETIME | 触发时间 |
+| acknowledged | BOOLEAN | 是否已确认 |
+
+### API Key 安全
+
+> **重要**：API Key 存储在 `data.db` 数据库的 `provider_config` 表中。
+> 如果需要查看或修改 API Key，请直接操作数据库，**不要**将数据库文件提交到版本控制。
+
+查看 API Key：
+```bash
+python -c "
+import sqlite3
+conn = sqlite3.connect('data.db')
+cursor = conn.cursor()
+cursor.execute('SELECT id, name, api_key FROM provider_config')
+for row in cursor.fetchall():
+    print(f'ID: {row[0]}, Name: {row[1]}, API Key: {row[2]}')
+conn.close()
+"
+```
+
+手动更新 API Key：
+```bash
+python -c "
+import sqlite3
+conn = sqlite3.connect('data.db')
+cursor = conn.cursor()
+cursor.execute(\"UPDATE provider_config SET api_key = 'sk-your-new-key' WHERE name = 'deepseek'\")
+conn.commit()
+print('API Key updated')
+conn.close()
+"
+```
 
 ## 开发模式
 

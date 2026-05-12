@@ -12,6 +12,7 @@ BALANCE_ENDPOINTS = {
 async def query_balance(provider: ProviderConfig) -> dict | None:
     endpoint = BALANCE_ENDPOINTS.get(provider.name.lower())
     if not endpoint:
+        print(f"[Balance] No balance endpoint for provider: {provider.name}")
         return None
 
     # 余额接口使用根域名，不走 /anthropic 路径
@@ -25,8 +26,10 @@ async def query_balance(provider: ProviderConfig) -> dict | None:
             )
             if resp.status_code == 200:
                 return resp.json()
-    except Exception:
-        pass
+            else:
+                print(f"[Balance] Query failed for {provider.name}: HTTP {resp.status_code} - {resp.text[:200]}")
+    except Exception as e:
+        print(f"[Balance] Query exception for {provider.name}: {type(e).__name__}: {e}")
     return None
 
 

@@ -35,7 +35,7 @@ def check_alerts():
             ).first()
             total_cost = total_cost_result or 0.0
 
-            remaining = provider.initial_balance - total_cost
+            remaining = provider.initial_balance
 
             # 余额告警
             if provider.alert_threshold_balance > 0 and remaining <= provider.alert_threshold_balance:
@@ -79,7 +79,7 @@ def start_scheduler():
     )
     scheduler.add_job(
         sync_balance_from_api,
-        trigger=IntervalTrigger(minutes=10),
+        trigger=IntervalTrigger(minutes=5),
         id="balance_sync",
         replace_existing=True,
     )

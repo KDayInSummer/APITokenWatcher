@@ -163,16 +163,6 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-gray-400 mb-0.5">初始余额</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
-                  value={editing.initial_balance}
-                  onChange={(e) => setEditing({ ...editing, initial_balance: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">币种</label>
                 <input
                   className="w-full border border-gray-600 rounded px-2 py-1 text-xs bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"

@@ -37,7 +37,18 @@ def _record_usage(session: Session, provider_id: int, provider_name: str, usage:
     # 支持 OpenAI 格式和 Anthropic 格式的 cache tokens 字段名
     prompt_cache_hit_tokens = usage.get("prompt_cache_hit_tokens") or usage.get("cache_read_input_tokens") or 0
     prompt_cache_miss_tokens = usage.get("prompt_cache_miss_tokens") or usage.get("cache_creation_input_tokens") or 0
-    total_tokens = usage.get("total_tokens") or (prompt_tokens + completion_tokens)
+
+    # DeepSeek v4 行为修正：v4 中 prompt_tokens 仅表示非缓存部分，
+    # prompt_cache_miss_tokens 始终为 0，需要用 prompt_tokens 作为缓存未命中
+    if prompt_cache_miss_tokens == 0:
+        if prompt_cache_hit_tokens > 0:
+            # v4: prompt_tokens = 非缓存部分
+            prompt_cache_miss_tokens = prompt_tokens
+        elif prompt_tokens > 0:
+            # 首次调用或无缓存：所有 token 都是"未命中"
+            prompt_cache_miss_tokens = prompt_tokens
+
+    total_tokens = usage.get("total_tokens") or (prompt_tokens + prompt_cache_hit_tokens + completion_tokens)
 
     if total_tokens == 0:
         return
