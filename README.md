@@ -8,7 +8,7 @@
 - **多平台支持**：目前支持 DeepSeek OpenAI 兼容接口
 - **余额双重追踪**：剩余额度每 5 分钟从平台 API 同步真实余额；实时计算剩余额度根据每次请求实时扣减
 - **灵活时间筛选**：支持今日/本周/本月/累计四种时间维度查看统计数据
-- **可视化仪表盘**：支持日/月/年维度的 Token 与费用趋势图、最近用量记录
+- **可视化仪表盘**：8 项核心指标彩色卡片（宽屏 4 列、窄屏 2 列自适应），支持周/月/年维度的 Token 与费用趋势图、最近用量记录
 - **缓存监控**：实时显示缓存命中/未命中 token 数及节省费用估算
 - **阈值告警**：余额不足、费用超限时自动提醒
 - **桌面应用**：基于 pywebview 的桌面窗口，方便挂在屏幕角落
@@ -17,7 +17,7 @@
 
 ### 方式一：直接使用（推荐）
 
-从 `dist/` 目录下载 `APITokenWatcher.rar`，解压后双击 `APITokenWatcher.exe` 即可运行。无需安装 Python 或 Node.js。
+下载项目根目录下的 `APITokenWatcher.zip`，解压后双击 `APITokenWatcher.exe` 即可运行。无需安装 Python 或 Node.js。
 
 ### 方式二：从源码运行
 
@@ -118,9 +118,9 @@ APITokenWatcher/
 │   │   └── hooks/
 │   │       └── usePolling.ts  # 轮询 hook
 │   └── package.json
+├── APITokenWatcher.zip     # 可分发的压缩包（解压后双击 exe 即可使用）
 ├── dist/                   # 构建产物
-│   ├── APITokenWatcher/    # exe 及依赖
-│   └── APITokenWatcher.rar # 可分发的压缩包
+│   └── APITokenWatcher/    # exe 及依赖
 ├── run.py                  # 启动脚本
 ├── build.bat               # 一键构建脚本
 ├── APITokenWatcher.spec    # PyInstaller 配置
