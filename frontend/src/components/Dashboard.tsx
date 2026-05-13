@@ -7,21 +7,25 @@ import type { TimeRange } from '../App';
 
 interface Summary {
   today_tokens: number;
+  today_completion_tokens: number;
   today_cost: number;
   today_calls: number;
   today_cache_hit_tokens: number;
   today_cache_miss_tokens: number;
   week_tokens: number;
+  week_completion_tokens: number;
   week_cost: number;
   week_calls: number;
   week_cache_hit_tokens: number;
   week_cache_miss_tokens: number;
   month_tokens: number;
+  month_completion_tokens: number;
   month_cost: number;
   month_calls: number;
   month_cache_hit_tokens: number;
   month_cache_miss_tokens: number;
   all_tokens: number;
+  all_completion_tokens: number;
   all_cost: number;
   all_calls: number;
   all_cache_hit_tokens: number;
@@ -100,16 +104,9 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
   const cacheHit = summary[`${timeRange}_cache_hit_tokens` as keyof Summary] as number;
   const cacheMiss = summary[`${timeRange}_cache_miss_tokens` as keyof Summary] as number;
   const tokens = summary[`${timeRange}_tokens` as keyof Summary] as number;
+  const completionTokens = summary[`${timeRange}_completion_tokens` as keyof Summary] as number;
   const cost = summary[`${timeRange}_cost` as keyof Summary] as number;
   const calls = summary[`${timeRange}_calls` as keyof Summary] as number;
-
-  // Points 1&2: 调用→调用次数, 费用 and 调用 swapped → Token, 调用次数, 费用
-  // Point 3: 费用 at position 5 with value, 剩余额度 right of 实时计算剩余额度
-  // Responsive: 费用 uses col-span-2 lg:col-span-1 to take full row on mobile
-  const dataCards = [
-    { label: `${label}Token`, value: tokens.toLocaleString(), color: 'bg-blue-500' },
-    { label: `${label}调用次数`, value: calls.toLocaleString(), color: 'bg-indigo-500' },
-  ];
 
   const hitRate = cacheHit + cacheMiss > 0
     ? (cacheHit / (cacheHit + cacheMiss) * 100).toFixed(1)
@@ -144,11 +141,11 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-violet-500" />
-            <div className="text-xs text-gray-400">{label}缓存命中</div>
+            <div className="text-xs text-gray-400">{label}输入缓存命中Token</div>
           </div>
           <div className="text-xl font-bold text-emerald-400">{cacheHit.toLocaleString()}</div>
           <div className="text-[10px] text-gray-500 mt-0.5">命中率 {hitRate}%</div>
@@ -156,7 +153,7 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <div className="text-xs text-gray-400">{label}缓存未命中</div>
+            <div className="text-xs text-gray-400">{label}输入缓存未命中Token</div>
           </div>
           <div className="text-xl font-bold text-orange-400">{cacheMiss.toLocaleString()}</div>
           <div className="text-[10px] text-gray-500 mt-0.5">
@@ -164,42 +161,49 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
             <span className="text-gray-600"> (按 0.9/百万差价计)</span>
           </div>
         </div>
-      </div>
-
-      {/* Point 3: Token, 调用次数, 实时计算剩余额度, 剩余额度, 费用 */}
-      {/* Mobile: 费用 alone on row 3 (col-span-2). Desktop: all 5 in one row. */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
-        {dataCards.map((c) => (
-          <div key={c.label} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-            <div className="flex items-center gap-1.5 mb-1">
-              <div className={`w-2 h-2 rounded-full ${c.color}`} />
-              <div className="text-xs text-gray-400">{c.label}</div>
-            </div>
-            <div className="text-xl font-bold text-gray-100">{c.value}</div>
+        <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-teal-500" />
+            <div className="text-xs text-gray-400">{label}输出Token</div>
           </div>
-        ))}
+          <div className="text-xl font-bold text-gray-100">{completionTokens.toLocaleString()}</div>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <div className="text-xs text-gray-400">{label}消耗总Token</div>
+          </div>
+          <div className="text-xl font-bold text-gray-100">{tokens.toLocaleString()}</div>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-indigo-500" />
+            <div className="text-xs text-gray-400">{label}请求次数</div>
+          </div>
+          <div className="text-xl font-bold text-gray-100">{calls.toLocaleString()}</div>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+            <div className="text-xs text-gray-400">{label}消费金额</div>
+          </div>
+          <div className="text-xl font-bold text-gray-100">{sym}{cost.toFixed(4)}</div>
+        </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-pink-500" />
-            <div className="text-xs text-gray-400">实时计算剩余额度</div>
-            <TooltipIcon text="根据每次请求实时计算剩余额度" />
+            <div className="text-xs text-gray-400">实时计算剩余金额</div>
+            <TooltipIcon text="根据每次请求实时计算剩余金额" />
           </div>
           <div className="text-xl font-bold text-gray-100">{sym}{realTimeBalance.toFixed(2)}</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-cyan-500" />
-            <div className="text-xs text-gray-400">剩余额度</div>
+            <div className="text-xs text-gray-400">剩余金额</div>
             <TooltipIcon text="每5分钟从平台 API 同步真实余额" />
           </div>
           <div className="text-xl font-bold text-gray-100">{sym}{summary.remaining_balance.toFixed(2)}</div>
-        </div>
-        <div className="col-span-2 lg:col-span-1 bg-gray-800 rounded-lg p-3 border border-gray-700">
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <div className="text-xs text-gray-400">{label}费用</div>
-          </div>
-          <div className="text-xl font-bold text-gray-100">{sym}{cost.toFixed(4)}</div>
         </div>
       </div>
 

@@ -37,6 +37,15 @@ def usage_summary(
         result = session.exec(query).first()
         return result or 0
 
+    def get_completion_tokens(start: Optional[datetime] = None) -> int:
+        query = select(func.sum(UsageRecord.completion_tokens))
+        if start is not None:
+            query = query.where(UsageRecord.timestamp >= start)
+        if provider_id:
+            query = query.where(UsageRecord.provider_id == provider_id)
+        result = session.exec(query).first()
+        return result or 0
+
     def get_calls(start: Optional[datetime] = None) -> int:
         query = select(func.count(UsageRecord.id))
         if start is not None:
@@ -79,24 +88,28 @@ def usage_summary(
     return {
         # Today
         "today_tokens": get_tokens(start_of_day),
+        "today_completion_tokens": get_completion_tokens(start_of_day),
         "today_cost": round(get_cost(start_of_day), 6),
         "today_calls": get_calls(start_of_day),
         "today_cache_hit_tokens": int(today_cache_hit),
         "today_cache_miss_tokens": int(today_cache_miss),
         # This week
         "week_tokens": get_tokens(start_of_week),
+        "week_completion_tokens": get_completion_tokens(start_of_week),
         "week_cost": round(get_cost(start_of_week), 6),
         "week_calls": get_calls(start_of_week),
         "week_cache_hit_tokens": int(week_cache_hit),
         "week_cache_miss_tokens": int(week_cache_miss),
         # This month
         "month_tokens": get_tokens(start_of_month),
+        "month_completion_tokens": get_completion_tokens(start_of_month),
         "month_cost": round(get_cost(start_of_month), 6),
         "month_calls": get_calls(start_of_month),
         "month_cache_hit_tokens": int(month_cache_hit),
         "month_cache_miss_tokens": int(month_cache_miss),
         # All time
         "all_tokens": get_tokens(),
+        "all_completion_tokens": get_completion_tokens(),
         "all_cost": round(get_cost(), 6),
         "all_calls": get_calls(),
         "all_cache_hit_tokens": int(all_cache_hit),
