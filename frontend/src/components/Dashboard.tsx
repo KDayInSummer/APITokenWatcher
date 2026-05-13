@@ -166,28 +166,28 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
             <div className="w-2 h-2 rounded-full bg-teal-500" />
             <div className="text-xs text-gray-400">{label}输出Token</div>
           </div>
-          <div className="text-xl font-bold text-gray-100">{completionTokens.toLocaleString()}</div>
+          <div className="text-xl font-bold text-teal-400">{completionTokens.toLocaleString()}</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             <div className="text-xs text-gray-400">{label}消耗总Token</div>
           </div>
-          <div className="text-xl font-bold text-gray-100">{tokens.toLocaleString()}</div>
+          <div className="text-xl font-bold text-blue-400">{tokens.toLocaleString()}</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-indigo-500" />
             <div className="text-xs text-gray-400">{label}请求次数</div>
           </div>
-          <div className="text-xl font-bold text-gray-100">{calls.toLocaleString()}</div>
+          <div className="text-xl font-bold text-indigo-400">{calls.toLocaleString()}</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <div className="text-xs text-gray-400">{label}消费金额</div>
           </div>
-          <div className="text-xl font-bold text-gray-100">{sym}{cost.toFixed(4)}</div>
+          <div className="text-xl font-bold text-yellow-400">{sym}{cost.toFixed(4)}</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
@@ -195,7 +195,7 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
             <div className="text-xs text-gray-400">实时计算剩余金额</div>
             <TooltipIcon text="根据每次请求实时计算剩余金额" />
           </div>
-          <div className="text-xl font-bold text-gray-100">{sym}{realTimeBalance.toFixed(2)}</div>
+          <div className="text-xl font-bold text-pink-400">{sym}{realTimeBalance.toFixed(2)}</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
           <div className="flex items-center gap-1.5 mb-1">
@@ -203,7 +203,7 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
             <div className="text-xs text-gray-400">剩余金额</div>
             <TooltipIcon text="每5分钟从平台 API 同步真实余额" />
           </div>
-          <div className="text-xl font-bold text-gray-100">{sym}{summary.remaining_balance.toFixed(2)}</div>
+          <div className="text-xl font-bold text-cyan-400">{sym}{summary.remaining_balance.toFixed(2)}</div>
         </div>
       </div>
 
