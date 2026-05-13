@@ -38,7 +38,7 @@ const rangeLabels: Record<TimeRange, string> = {
   all: '累计',
 };
 
-type ChartMode = 'day' | 'month' | 'year';
+type ChartMode = 'week' | 'month' | 'year';
 
 function TooltipIcon({ text }: { text: string }) {
   return (
@@ -55,7 +55,7 @@ function TooltipIcon({ text }: { text: string }) {
 
 export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: { providerId?: number; timeRange: TimeRange; onTimeRangeChange: (r: TimeRange) => void }) {
   const appStartTime = useRef(Date.now() / 1000);
-  const [chartMode, setChartMode] = useState<ChartMode>('day');
+  const [chartMode, setChartMode] = useState<ChartMode>('week');
   const now = new Date();
   const [chartYear, setChartYear] = useState(now.getFullYear());
   const [chartMonth, setChartMonth] = useState(now.getMonth() + 1);
@@ -83,7 +83,7 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
     [providerId]
   );
 
-  const trendLimit = chartMode === 'day' ? 7 : chartMode === 'month' ? 31 : 12;
+  const trendLimit = chartMode === 'week' ? 7 : chartMode === 'month' ? 31 : 12;
   const { data: trend } = usePolling(
     () => api.usage.trend(providerId, chartMode, trendLimit, chartYear, chartMonth),
     30000,
@@ -117,7 +117,7 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
 
   const realTimeBalance = summary.remaining_balance - summary.real_time_cost;
 
-  const trendTitle = chartMode === 'day'
+  const trendTitle = chartMode === 'week'
     ? 'Token/费用 趋势 (近7天)'
     : chartMode === 'month'
     ? `Token/费用 趋势 (${chartYear}年${chartMonth}月)`
@@ -211,6 +211,12 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
         {/* 折线图显示范围 selector - separate line, same style as 数据显示范围 */}
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs text-gray-400">折线图显示范围</span>
+          <button
+            onClick={() => setChartMode('week')}
+            className={`px-2 py-0.5 text-[10px] rounded ${chartMode === 'week' ? 'bg-blue-600/30 text-blue-400' : 'text-gray-400 hover:bg-gray-700'}`}
+          >
+            周
+          </button>
           <div className="relative" ref={monthPickerRef}>
             <button
               onClick={() => { setChartMode('month'); setShowMonthPicker(!showMonthPicker); setShowYearPicker(false); }}
@@ -251,7 +257,7 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
               年
             </button>
             {showYearPicker && chartMode === 'year' && (
-              <div className="absolute top-full left-0 mt-1 bg-gray-900 border border-gray-600 rounded p-2 z-50 shadow-lg">
+              <div className="absolute top-full right-0 mt-1 bg-gray-900 border border-gray-600 rounded p-2 z-50 shadow-lg">
                 <div className="grid grid-cols-2 gap-1">
                   {years.map(y => (
                     <button
