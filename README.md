@@ -78,7 +78,7 @@ build.bat
 1. 打开 CC Switch 设置
 2. 将「请求地址」改为：
    ```
-   http://127.0.0.1:8765/proxy/deepseek
+   http://127.0.0.1:8766/proxy/deepseek
    ```
 3. API 格式选择「Anthropic Messages (原生)」
 4. 保存并测试
@@ -226,14 +226,14 @@ conn.close()
 ```bash
 # 后端（热重载）
 cd backend
-uvicorn main:app --reload --host 127.0.0.1 --port 8765
+uvicorn main:app --reload --host 127.0.0.1 --port 8766
 
 # 前端（Vite 开发服务器）
 cd frontend
 npm run dev
 ```
 
-开发时后端代理层默认监听 `8765` 端口，前端 Vite 开发服务器默认 `5173` 端口。生产构建前端文件输出到 `backend/static/`，由 FastAPI 直接托管。
+开发时后端代理层默认监听 `8766` 端口，前端 Vite 开发服务器默认 `5173` 端口。生产构建前端文件输出到 `backend/static/`，由 FastAPI 直接托管。
 
 ## 许可证
 

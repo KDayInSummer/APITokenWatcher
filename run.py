@@ -16,7 +16,7 @@ import uvicorn
 from backend.main import app
 
 HOST = "127.0.0.1"
-PORT = 8765
+PORT = 8766
 URL = f"http://{HOST}:{PORT}"
 
 
