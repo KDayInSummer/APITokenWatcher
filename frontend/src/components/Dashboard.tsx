@@ -261,8 +261,8 @@ export default function Dashboard({ providerId, timeRange, onTimeRangeChange }: 
               年
             </button>
             {showYearPicker && chartMode === 'year' && (
-              <div className="absolute top-full right-0 mt-1 bg-gray-900 border border-gray-600 rounded p-2 z-50 shadow-lg">
-                <div className="grid grid-cols-2 gap-1">
+              <div className="absolute top-full left-0 mt-1 bg-gray-900 border border-gray-600 rounded p-2 z-50 shadow-lg min-w-[120px]">
+                <div className="grid grid-cols-3 gap-1">
                   {years.map(y => (
                     <button
                       key={y}
