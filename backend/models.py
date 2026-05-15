@@ -16,9 +16,9 @@ class ProviderConfig(SQLModel, table=True):
     alert_threshold_balance: float = 0.0
     is_enabled: bool = True
     # 模型定价（每百万token，单位：当前币种）
-    pricing_cache_hit_input: float = 0.05
-    pricing_cache_miss_input: float = 0.05
-    pricing_output: float = 0.1
+    pricing_cache_hit_input: float = 0.02
+    pricing_cache_miss_input: float = 1.0
+    pricing_output: float = 2.0
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -47,3 +47,17 @@ class AlertLog(SQLModel, table=True):
     message: str
     triggered_at: datetime = Field(default_factory=datetime.utcnow)
     acknowledged: bool = False
+
+
+class ModelPricing(SQLModel, table=True):
+    __tablename__ = "model_pricing"
+    model_config = {"protected_namespaces": ()}
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    provider_id: int = Field(foreign_key="provider_config.id", index=True)
+    model_name: str = Field(index=True)
+    pricing_cache_hit_input: float = 0.02
+    pricing_cache_miss_input: float = 1.0
+    pricing_output: float = 2.0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

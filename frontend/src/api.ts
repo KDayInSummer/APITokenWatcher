@@ -26,13 +26,19 @@ async function put(path: string, body: object) {
   return res.json();
 }
 
+async function del(path: string) {
+  const res = await fetch(`${BASE}${path}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export const api = {
   providers: {
     list: () => get('/api/providers'),
     get: (id: number) => get(`/api/providers/${id}`),
     create: (data: any) => post('/api/providers', data),
     update: (id: number, data: any) => put(`/api/providers/${id}`, data),
-    del: (id: number) => fetch(`${BASE}/api/providers/${id}`, { method: 'DELETE' }).then(r => r.json()),
+    del: (id: number) => del(`/api/providers/${id}`),
     syncBalance: (id: number) => post(`/api/providers/${id}/sync-balance`),
   },
   usage: {
@@ -47,5 +53,11 @@ export const api = {
     list: () => get('/api/alerts'),
     ack: (id: number) => post(`/api/alerts/${id}/ack`),
     test: () => post('/api/alerts/test'),
+  },
+  modelPricings: {
+    list: (providerId: number) => get(`/api/providers/${providerId}/models`),
+    create: (providerId: number, data: any) => post(`/api/providers/${providerId}/models`, data),
+    update: (providerId: number, modelId: number, data: any) => put(`/api/providers/${providerId}/models/${modelId}`, data),
+    del: (providerId: number, modelId: number) => del(`/api/providers/${providerId}/models/${modelId}`),
   },
 };

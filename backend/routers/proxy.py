@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request, Response, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from backend.database import get_session
-from backend.models import ProviderConfig, UsageRecord
+from backend.models import ProviderConfig, UsageRecord, ModelPricing
 from backend.services.cost import calculate_cost
 
 router = APIRouter(prefix="/proxy")
@@ -52,13 +52,30 @@ def _record_usage(session: Session, provider: ProviderConfig, usage: dict, model
     if total_tokens == 0:
         return
 
+    # 优先查找模型特定定价
+    mp = session.exec(
+        select(ModelPricing).where(
+            ModelPricing.provider_id == provider.id,
+            ModelPricing.model_name == model
+        )
+    ).first()
+
+    if mp:
+        hit_price = mp.pricing_cache_hit_input
+        miss_price = mp.pricing_cache_miss_input
+        out_price = mp.pricing_output
+    else:
+        hit_price = provider.pricing_cache_hit_input
+        miss_price = provider.pricing_cache_miss_input
+        out_price = provider.pricing_output
+
     cost = calculate_cost(
         prompt_cache_hit_tokens,
         prompt_cache_miss_tokens,
         completion_tokens,
-        provider.pricing_cache_hit_input,
-        provider.pricing_cache_miss_input,
-        provider.pricing_output,
+        hit_price,
+        miss_price,
+        out_price,
     )
 
     record = UsageRecord(

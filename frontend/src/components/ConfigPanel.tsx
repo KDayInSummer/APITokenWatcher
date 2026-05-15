@@ -15,12 +15,24 @@ interface Provider {
   pricing_output: number;
 }
 
+interface ModelPricing {
+  id?: number;
+  provider_id?: number;
+  model_name: string;
+  pricing_cache_hit_input: number;
+  pricing_cache_miss_input: number;
+  pricing_output: number;
+}
+
 export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [editing, setEditing] = useState<Provider | null>(null);
   const [syncing, setSyncing] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [modelPricings, setModelPricings] = useState<ModelPricing[]>([]);
+  const [newModel, setNewModel] = useState<ModelPricing | null>(null);
+  const [modelPricingError, setModelPricingError] = useState<string | null>(null);
 
   const load = async () => {
     const list = await api.providers.list();
@@ -44,7 +56,16 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
       if (editing.id) {
         await api.providers.update(editing.id, payload);
       } else {
-        await api.providers.create(payload);
+        const created = await api.providers.create(payload);
+        // 新增平台时，将缓存的模型定价一并创建
+        for (const mp of modelPricings) {
+          await api.modelPricings.create(created.id, {
+            model_name: mp.model_name,
+            pricing_cache_hit_input: mp.pricing_cache_hit_input,
+            pricing_cache_miss_input: mp.pricing_cache_miss_input,
+            pricing_output: mp.pricing_output,
+          });
+        }
       }
       setEditing(null);
       await load();
@@ -76,8 +97,51 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
     setSyncing(null);
   };
 
-  const startEdit = (p?: Provider) => {
+  const addModelPricing = async () => {
+    if (!newModel || !newModel.model_name.trim()) return;
+    setModelPricingError(null);
+    try {
+      if (editing?.id) {
+        const created = await api.modelPricings.create(editing.id, {
+          model_name: newModel.model_name.trim(),
+          pricing_cache_hit_input: newModel.pricing_cache_hit_input,
+          pricing_cache_miss_input: newModel.pricing_cache_miss_input,
+          pricing_output: newModel.pricing_output,
+        });
+        setModelPricings([...modelPricings, created]);
+      } else {
+        // 新增平台：暂存到前端列表
+        setModelPricings([...modelPricings, { ...newModel, model_name: newModel.model_name.trim() }]);
+      }
+      setNewModel(null);
+    } catch (e: any) {
+      setModelPricingError(e?.message || '添加失败');
+    }
+  };
+
+  const removeModelPricing = async (mp: ModelPricing) => {
+    if (!confirm(`确定删除模型 ${mp.model_name} 的定价？`)) return;
+    setModelPricingError(null);
+    try {
+      if (editing?.id && mp.id) {
+        await api.modelPricings.del(editing.id, mp.id);
+      }
+      setModelPricings(modelPricings.filter((m) => m !== mp));
+    } catch (e: any) {
+      setModelPricingError(e?.message || '删除失败');
+    }
+  };
+
+  const startEdit = async (p?: Provider) => {
     setShowApiKey(false);
+    setNewModel(null);
+    setModelPricingError(null);
+    if (p && p.id) {
+      const models = await api.modelPricings.list(p.id);
+      setModelPricings(models);
+    } else {
+      setModelPricings([]);
+    }
     setEditing(
       p || {
         name: 'deepseek',
@@ -118,7 +182,7 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
           <div>
             <div className="font-medium text-gray-100 text-xs">{p.name}</div>
             <div className="text-[10px] text-gray-500">
-              定价: 缓存命中 {p.pricing_cache_hit_input} | 未命中 {p.pricing_cache_miss_input} | 输出 {p.pricing_output}
+              默认定价: 缓存命中 {p.pricing_cache_hit_input} | 未命中 {p.pricing_cache_miss_input} | 输出 {p.pricing_output}
             </div>
           </div>
           <div className="flex gap-1">
@@ -246,6 +310,73 @@ export default function ConfigPanel({ onChange }: { onChange?: () => void }) {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* 模型特定定价 */}
+            <div className="pt-2 border-t border-gray-700">
+              <div className="text-[10px] text-gray-400 mb-1">模型特定定价（可选，未配置的模型将使用上方平台默认定价）</div>
+              {modelPricings.length > 0 && (
+                <div className="space-y-1 mb-2">
+                  <div className="grid grid-cols-[1fr_70px_70px_70px_30px] gap-1 text-[9px] text-gray-500 px-1">
+                    <span>模型名称</span>
+                    <span>缓存命中</span>
+                    <span>缓存未命中</span>
+                    <span>输出</span>
+                    <span></span>
+                  </div>
+                  {modelPricings.map((mp, i) => (
+                    <div key={mp.id || i} className="grid grid-cols-[1fr_70px_70px_70px_30px] gap-1 items-center bg-gray-750 rounded px-1 py-0.5 text-[10px] text-gray-300" style={{ background: 'rgb(55,65,81)' }}>
+                      <span className="truncate font-mono">{mp.model_name}</span>
+                      <span>{mp.pricing_cache_hit_input}</span>
+                      <span>{mp.pricing_cache_miss_input}</span>
+                      <span>{mp.pricing_output}</span>
+                      <button onClick={() => removeModelPricing(mp)} className="text-red-400 hover:text-red-300 text-[10px]">x</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {newModel ? (
+                <div className="grid grid-cols-[1fr_70px_70px_70px] gap-1 items-end">
+                  <input
+                    placeholder="模型名称"
+                    className="border border-gray-600 rounded px-1 py-0.5 text-[10px] bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={newModel.model_name}
+                    onChange={(e) => setNewModel({ ...newModel, model_name: e.target.value })}
+                  />
+                  <input
+                    type="number" step="0.001" placeholder="命中"
+                    className="border border-gray-600 rounded px-1 py-0.5 text-[10px] bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={newModel.pricing_cache_hit_input}
+                    onChange={(e) => setNewModel({ ...newModel, pricing_cache_hit_input: parseFloat(e.target.value) || 0 })}
+                  />
+                  <input
+                    type="number" step="0.01" placeholder="未命中"
+                    className="border border-gray-600 rounded px-1 py-0.5 text-[10px] bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={newModel.pricing_cache_miss_input}
+                    onChange={(e) => setNewModel({ ...newModel, pricing_cache_miss_input: parseFloat(e.target.value) || 0 })}
+                  />
+                  <input
+                    type="number" step="0.01" placeholder="输出"
+                    className="border border-gray-600 rounded px-1 py-0.5 text-[10px] bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+                    value={newModel.pricing_output}
+                    onChange={(e) => setNewModel({ ...newModel, pricing_output: parseFloat(e.target.value) || 0 })}
+                  />
+                  <div className="col-span-4 flex gap-1 mt-1">
+                    <button onClick={addModelPricing} className="px-2 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-500">保存</button>
+                    <button onClick={() => setNewModel(null)} className="px-2 py-0.5 text-[10px] border border-gray-600 text-gray-300 rounded hover:bg-gray-700">取消</button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setNewModel({ model_name: '', pricing_cache_hit_input: 0.02, pricing_cache_miss_input: 1.0, pricing_output: 2.0 })}
+                  className="text-[10px] text-blue-400 hover:text-blue-300"
+                >
+                  + 添加模型定价
+                </button>
+              )}
+              {modelPricingError && (
+                <div className="text-[10px] text-red-400 mt-1">{modelPricingError}</div>
+              )}
             </div>
 
             {saveError && (
