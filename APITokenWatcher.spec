@@ -22,6 +22,8 @@ a = Analysis(
         'apscheduler.executors.pool',
         # pydantic settings
         'pydantic_settings',
+        'pydantic_core',
+        'pydantic_core._pydantic_core',
         # httpx
         'httpx._transports.default',
         # SQLModel / SQLAlchemy
